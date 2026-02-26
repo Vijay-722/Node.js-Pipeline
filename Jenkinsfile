@@ -9,12 +9,6 @@ pipeline {
 
     stages {
 
-        stage('Clone Code') {
-            steps {
-                git 'https://github.com/Vijay-722/Node.js-Pipeline.git'
-            }
-        }
-
         stage('Install Dependencies') {
             steps {
                 sh 'npm install'
@@ -34,23 +28,22 @@ pipeline {
         }
 
         stage('Deploy') {
-    steps {
-        sh '''
-        ssh ubuntu@localhost "
-        docker stop node-container || true
-        docker rm node-container || true
-        docker run -d --name node-container -p 3000:3000 node-app:$BUILD_NUMBER
-        "
-        '''
-    }
-}
+            steps {
+                sh """
+                ssh ubuntu@localhost '
+                docker stop $CONTAINER_NAME || true
+                docker rm $CONTAINER_NAME || true
+                docker run -d --name $CONTAINER_NAME -p 3000:3000 $IMAGE_NAME:$DOCKER_TAG
+                '
+                """
+            }
+        }
     }
 
     post {
         failure {
-            echo "Deployment failed. Rolling back..."
+            echo "Deployment failed."
         }
-
         success {
             echo "Deployment Successful!"
         }
